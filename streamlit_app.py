@@ -64,7 +64,7 @@ with st.sidebar:
     )
 
     # ---------- Botão de Configurações no final ----------
-    st.markdown("<br><br>", unsafe_allow_html=True)  # força espaço até o final
+    st.markdown("", unsafe_allow_html=True)  # força espaço até o final
     col1, col2, col3 = st.columns([20,1,1])
     with col2:
         st.button("⚙️", on_click=abrir_configuracoes, help="Configurações")
