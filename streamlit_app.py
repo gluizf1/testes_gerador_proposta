@@ -67,7 +67,7 @@ with st.sidebar:
     st.markdown("", unsafe_allow_html=True)  # força espaço até o final
     col1, col2, col3 = st.columns([20,1,1])
     with col2:
-        st.button("⚙️", on_click=abrir_configuracoes, help="Configurações")
+        st.button(" ⚙️ ", on_click=abrir_configuracoes, help="Configurações")
 
 # ---------- Página de Proposta ----------
 if st.session_state["pagina"] == "proposta":
