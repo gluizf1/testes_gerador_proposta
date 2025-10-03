@@ -38,7 +38,8 @@ if menu == "📝 Proposta":
 
     # Entrada de itens
     st.subheader("Itens da Proposta")
-    df = pd.DataFrame(columns=["Descrição", "Quantidade", "Valor Unitário", "Total"])
+    if "df" not in st.session_state:
+        st.session_state.df = pd.DataFrame(columns=["Descrição", "Quantidade", "Valor Unitário", "Total"])
 
     with st.form("form_itens", clear_on_submit=True):
         descricao = st.text_input("Descrição")
@@ -53,10 +54,10 @@ if menu == "📝 Proposta":
                 "Valor Unitário": valor_unitario,
                 "Total": quantidade * valor_unitario
             }
-            df = pd.concat([df, pd.DataFrame([novo_item])], ignore_index=True)
+            st.session_state.df = pd.concat([st.session_state.df, pd.DataFrame([novo_item])], ignore_index=True)
 
-    if not df.empty:
-        st.table(df)
+    if not st.session_state.df.empty:
+        st.table(st.session_state.df)
 
     # Geração do PDF
     if st.button("📄 Gerar PDF da Proposta"):
@@ -79,9 +80,9 @@ if menu == "📝 Proposta":
         story.append(Spacer(1, 20))
 
         # Tabela
-        if not df.empty:
+        if not st.session_state.df.empty:
             dados = [["Descrição", "Qtd", "V.Unitário", "Total"]]
-            for _, row in df.iterrows():
+            for _, row in st.session_state.df.iterrows():
                 dados.append([
                     row["Descrição"],
                     int(row["Quantidade"]),
@@ -110,10 +111,5 @@ if menu == "📝 Proposta":
 
 # ---------- Aba de Configurações ----------
 elif menu == "⚙️ Configurações":
-    st.title("⚙️ Configurações do Sistema")
-
-    logo = st.file_uploader("Carregar Logo", type=["png", "jpg"])
-    assinatura = st.file_uploader("Carregar Assinatura", type=["png", "jpg"])
-    cor_principal = st.color_picker("Cor principal", "#004AAD")
-
-    st.write("Essas configurações podem futuramente ser salvas em cache ou arquivo para reaproveitar.")
+    st.title("⚙️ Configurações")
+    st.info("Área de configuração em desenvolvimento.")
