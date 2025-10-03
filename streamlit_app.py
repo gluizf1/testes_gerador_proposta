@@ -182,102 +182,166 @@ if st.session_state["pagina"] == "proposta":
 
     # ---------- Função gerar PDF completa ----------
     def gerar_pdf_bytes(cliente, data_formatada, df_final, total_geral, prazo_pagamento, prazo_entrega, validade_proposta):
-        # (Aqui entra todo o código PDF completo como você tinha antes)
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=40,leftMargin=40,topMargin=40,bottomMargin=40)
-        estilos = getSampleStyleSheet()
-        estilos.add(ParagraphStyle(name="CenterTitle", alignment=TA_CENTER, fontSize=22, leading=26, spaceAfter=12, fontName="Helvetica-Bold"))
-        estilos.add(ParagraphStyle(name="SectionTitle", alignment=TA_LEFT, fontSize=12, leading=14, spaceAfter=6, fontName="Helvetica-BoldOblique"))
-        estilos.add(ParagraphStyle(name="NormalLeft", alignment=TA_LEFT, fontSize=10, leading=12))
-        elementos=[]
-        try:
-            logo = Image("logo.jpg")
-            logo.drawHeight=50
-            logo.drawWidth=120
-            logo.hAlign='CENTER'
-            elementos.append(logo)
-            elementos.append(Spacer(1,8))
-        except Exception:
-            elementos.append(Spacer(1,20))
-        elementos.append(Paragraph("Proposta Comercial", estilos["CenterTitle"]))
-        elementos.append(Spacer(1,6))
-        elementos.append(Paragraph(f"A/C {cliente}", estilos["NormalLeft"]))
-        elementos.append(Spacer(1,8))
-        elementos.append(Paragraph("Dados da Empresa", estilos["SectionTitle"]))
-        for linha in ["Nome da Empresa: GUSTAVO LUIZ FREITAS DE SOUSA","CNPJ: 41.640.044/0001-63","IE: 33.822.412.281","IM: 1.304.930-0","Endereço: Rua Henrique Fleiuss, 444 - Tijuca","Cidade/UF: Rio de Janeiro / RJ","CEP: 20521-260"]:
-            elementos.append(Paragraph(linha, estilos["NormalLeft"]))
-        elementos.append(Spacer(1,6))
-        elementos.append(Paragraph("Dados para Contato", estilos["SectionTitle"]))
-        for linha in ["E-mail: gustavo_lfs@hotmail.com","Telefone: (21) 996913090"]:
-            elementos.append(Paragraph(linha, estilos["NormalLeft"]))
-        elementos.append(Spacer(1,6))
-        elementos.append(Paragraph("Dados Bancários", estilos["SectionTitle"]))
-        for linha in ["Banco: Inter","Agência: 0001","Conta: 12174848-0","PIX: 41.640.044/0001-63"]:
-            elementos.append(Paragraph(linha, estilos["NormalLeft"]))
-        elementos.append(Spacer(1,10))
-        elementos.append(Paragraph("Itens da Proposta", estilos["SectionTitle"]))
-        if not df_final.empty:
-            df_tabela = df_final.copy()
-            if "Preço Unit." in df_tabela.columns:
-                df_tabela=df_tabela.rename(columns={"Preço Unit.":"Preço Unit. (R$)"})
-            df_tabela["Preço Unit. (R$)"] = df_tabela["Preço Unit. (R$)"].apply(formato_brl_num)
-            df_tabela["Total (R$)"] = df_tabela["Total (R$)"].apply(formato_brl_num)
-            header = list(df_tabela.columns)
-            dados_tabela = [header]
-            for row in df_tabela.itertuples(index=False, name=None):
-                dados_tabela.append([Paragraph(str(c).replace("\n"," "), estilos["NormalLeft"]) for c in row])
-            largura_total = A4[0]-doc.leftMargin-doc.rightMargin
-            col_widths=[]
-            for col in header:
-                if "Produto" in col: col_widths.append(largura_total*0.35)
-                elif "Observações" in col: col_widths.append(largura_total*0.25)
-                elif "Quant." in col: col_widths.append(largura_total*0.1)
-                elif "Preço Unit." in col: col_widths.append(largura_total*0.15)
-                else: col_widths.append(largura_total*0.15)
-            tabela=Table(dados_tabela, colWidths=col_widths, repeatRows=1)
-            estilo_table = TableStyle([("BOX",(0,0),(-1,-1),1,colors.black),("INNERGRID",(0,0),(-1,-1),0.4,colors.black),
-                                       ("BACKGROUND",(0,0),(-1,0),colors.lightgrey),("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
-                                       ("FONTSIZE",(0,0),(-1,-1),9),("VALIGN",(0,0),(-1,-1),"MIDDLE")])
-            for ci,col in enumerate(header):
-                if "Produto" in col or "Observações" in col: estilo_table.add("ALIGN",(ci,1),(ci,-1),"LEFT")
-                else: estilo_table.add("ALIGN",(ci,1),(ci,-1),"CENTER")
-            tabela.setStyle(estilo_table)
-            elementos.append(tabela)
-            elementos.append(Spacer(1,8))
-            elementos.append(Paragraph(f"Total Geral: R$ {formato_brl_num(total_geral)}", estilos["NormalLeft"]))
-            elementos.append(Spacer(1,10))
-        else:
-            elementos.append(Paragraph("Nenhum item adicionado.", estilos["NormalLeft"]))
-            elementos.append(Spacer(1,10))
-        elementos.append(Paragraph("Condições Comerciais", estilos["SectionTitle"]))
-        elementos.append(Paragraph(f"Validade da Proposta: {validade_proposta}", estilos["NormalLeft"]))
-        elementos.append(Paragraph(f"Prazo de Pagamento: {prazo_pagamento}", estilos["NormalLeft"]))
-        elementos.append(Paragraph(f"Prazo de Entrega: {prazo_entrega}", estilos["NormalLeft"]))
-        elementos.append(Paragraph("Impostos: Nos preços estão incluídos todos os custos indispensáveis à perfeita execução do objeto.", estilos["NormalLeft"]))
-        elementos.append(Spacer(1,8))
-        elementos.append(Paragraph(f"Rio de Janeiro, {data_formatada}.", estilos["NormalLeft"]))
-        try:
-            assinatura = Image("assinatura.png")
-            assinatura.drawHeight=50
-            assinatura.drawWidth=120
-            assinatura.hAlign='LEFT'
-            elementos.append(assinatura)
-        except Exception:
-            pass
-        elementos.append(Paragraph("Gustavo Luiz Freitas de Sousa", estilos["NormalLeft"]))
-        doc.build(elementos)
-        buffer.seek(0)
-        return buffer.getvalue()
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    elementos = []
+    estilos = getSampleStyleSheet()
+    estilos.add(ParagraphStyle(name="CenterTitle", alignment=TA_CENTER, fontSize=22, leading=26, spaceAfter=12, fontName="Helvetica-Bold"))
+    estilos.add(ParagraphStyle(name="SectionTitle", alignment=TA_LEFT, fontSize=12, leading=14, spaceAfter=6, fontName="Helvetica-BoldOblique"))
+    estilos.add(ParagraphStyle(name="NormalLeft", alignment=TA_LEFT, fontSize=10, leading=12))
 
-    pdf_bytes = gerar_pdf_bytes(cliente, data_formatada, df_final, total_geral, prazo_pagamento, prazo_entrega, validade_proposta)
-    st.download_button(label="Baixar Proposta em PDF", data=pdf_bytes, file_name=f"proposta_{cliente.replace(' ','_')}_{datetime.now().strftime('%Y%m%d')}.pdf", mime="application/pdf")
+    # Logo
+    try:
+        if "logo" in st.session_state and st.session_state["logo"] is not None:
+            logo = Image(st.session_state["logo"])
+        else:
+            logo = Image("logo.jpg")
+        logo.drawHeight = 50
+        logo.drawWidth = 120
+        logo.hAlign = 'CENTER'
+        elementos.append(logo)
+        elementos.append(Spacer(1, 8))
+    except Exception:
+        elementos.append(Spacer(1, 20))
+
+    # Título central
+    elementos.append(Paragraph("Proposta Comercial", estilos["CenterTitle"]))
+    elementos.append(Spacer(1, 6))
+
+    # A/C
+    elementos.append(Paragraph(f"A/C {cliente}", estilos["NormalLeft"]))
+    elementos.append(Spacer(1, 8))
+
+    # Dados fixos
+    elementos.append(Paragraph("Dados da Empresa", estilos["SectionTitle"]))
+    dados_empresa = [
+        "Nome da Empresa: GUSTAVO LUIZ FREITAS DE SOUSA",
+        "CNPJ: 41.640.044/0001-63",
+        "IE: 33.822.412.281",
+        "IM: 1.304.930-0",
+        "Endereço: Rua Henrique Fleiuss, 444 - Tijuca",
+        "Cidade/UF: Rio de Janeiro / RJ",
+        "CEP: 20521-260"
+    ]
+    for linha in dados_empresa:
+        elementos.append(Paragraph(linha, estilos["NormalLeft"]))
+    elementos.append(Spacer(1, 6))
+
+    elementos.append(Paragraph("Dados para Contato", estilos["SectionTitle"]))
+    contato = ["E-mail: gustavo_lfs@hotmail.com", "Telefone: (21) 996913090"]
+    for linha in contato:
+        elementos.append(Paragraph(linha, estilos["NormalLeft"]))
+    elementos.append(Spacer(1, 6))
+
+    elementos.append(Paragraph("Dados Bancários", estilos["SectionTitle"]))
+    bancarios = ["Banco: Inter", "Agência: 0001", "Conta: 12174848-0", "PIX: 41.640.044/0001-63"]
+    for linha in bancarios:
+        elementos.append(Paragraph(linha, estilos["NormalLeft"]))
+    elementos.append(Spacer(1, 10))
+
+    # Itens da proposta (tabela)
+    elementos.append(Paragraph("Itens da Proposta", estilos["SectionTitle"]))
+    if not df_final.empty:
+        df_tabela = df_final.copy()
+        if "Preço Unit." in df_tabela.columns:
+            df_tabela = df_tabela.rename(columns={"Preço Unit.": "Preço Unit. (R$)"})
+        if "Preço Unit. (R$)" in df_tabela.columns:
+            df_tabela["Preço Unit. (R$)"] = df_tabela["Preço Unit. (R$)"].apply(formato_brl_num)
+        if "Total (R$)" in df_tabela.columns:
+            df_tabela["Total (R$)"] = df_tabela["Total (R$)"].apply(formato_brl_num)
+
+        header = list(df_tabela.columns)
+        dados_tabela = [header]
+        for row in df_tabela.itertuples(index=False, name=None):
+            linha = [Paragraph(str(c).replace("\n", " "), estilos["NormalLeft"]) for c in row]
+            dados_tabela.append(linha)
+
+        margem_esq = doc.leftMargin
+        margem_dir = doc.rightMargin
+        largura_total = A4[0] - margem_esq - margem_dir
+        col_widths = []
+        for col in header:
+            if "Produto" in col:
+                col_widths.append(largura_total * 0.35)
+            elif "Observações" in col:
+                col_widths.append(largura_total * 0.25)
+            elif "Quant." in col:
+                col_widths.append(largura_total * 0.1)
+            elif "Preço Unit." in col:
+                col_widths.append(largura_total * 0.15)
+            else:
+                col_widths.append(largura_total * 0.15)
+
+        tabela = Table(dados_tabela, colWidths=col_widths, repeatRows=1)
+        cor_header = st.session_state.get("cor_tabela", "#D3D3D3")
+        estilo_table = TableStyle([
+            ("BOX", (0,0), (-1,-1), 1, colors.black),
+            ("INNERGRID", (0,0), (-1,-1), 0.4, colors.black),
+            ("BACKGROUND", (0,0), (-1,0), colors.HexColor(cor_header)),
+            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE", (0,0), (-1, -1), 9),
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ])
+        for ci, col in enumerate(header):
+            if "Produto" in col or "Observações" in col:
+                estilo_table.add("ALIGN", (ci,1), (ci,-1), "LEFT")
+            else:
+                estilo_table.add("ALIGN", (ci,1), (ci,-1), "CENTER")
+        tabela.setStyle(estilo_table)
+        elementos.append(tabela)
+        elementos.append(Spacer(1, 8))
+        elementos.append(Paragraph(f"Total Geral: R$ {formato_brl_num(total_geral)}", estilos["NormalLeft"]))
+        elementos.append(Spacer(1, 10))
+    else:
+        elementos.append(Paragraph("Nenhum item adicionado.", estilos["NormalLeft"]))
+        elementos.append(Spacer(1, 10))
+
+    # Condições comerciais
+    elementos.append(Paragraph("Condições Comerciais", estilos["SectionTitle"]))
+    elementos.append(Paragraph(f"Validade da Proposta: {validade_proposta}", estilos["NormalLeft"]))
+    elementos.append(Paragraph(f"Prazo de Pagamento: {prazo_pagamento}", estilos["NormalLeft"]))
+    elementos.append(Paragraph(f"Prazo de Entrega: {prazo_entrega}", estilos["NormalLeft"]))
+    elementos.append(Paragraph("Impostos: Nos preços estão incluídos todos os custos indispensáveis à perfeita execução do objeto.", estilos["NormalLeft"]))
+    elementos.append(Spacer(1, 8))
+
+    # Data + assinatura + nome
+    elementos.append(Paragraph(f"Rio de Janeiro, {data_formatada}.", estilos["NormalLeft"]))
+    try:
+        if "assinatura" in st.session_state and st.session_state["assinatura"] is not None:
+            assinatura_img = Image(st.session_state["assinatura"])
+            assinatura_img.drawHeight = 50
+            assinatura_img.drawWidth = 120
+            assinatura_img.hAlign = 'LEFT'
+            elementos.append(assinatura_img)
+    except Exception:
+        pass
+    elementos.append(Paragraph("Gustavo Luiz Freitas de Sousa", estilos["NormalLeft"]))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer.getvalue()
+
 
 # ---------- Página de Configurações ----------
 elif st.session_state["pagina"] == "config":
-    st.title("⚙️ Configurações")
+    st.title("Configurações")
+    
     if st.button("⬅️ Voltar para Proposta"):
         st.session_state["pagina"] = "proposta"
+
     st.markdown("### Personalizações")
+
+    # Upload de logo
     logo = st.file_uploader("Carregar Logo", type=["png","jpg"])
+    if logo is not None:
+        st.session_state["logo"] = logo
+
+    # Upload de assinatura
     assinatura = st.file_uploader("Carregar Assinatura", type=["png","jpg"])
-    cor = st.color_picker("Cor Principal da Tabela", "#004AAD")
+    if assinatura is not None:
+        st.session_state["assinatura"] = assinatura
+
+    # Cor principal da tabela
+    cor_tabela = st.color_picker("Cor Principal da Tabela", "#D3D3D3")  # cor default lightgrey
+    st.session_state["cor_tabela"] = cor_tabela
+
