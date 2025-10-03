@@ -29,25 +29,46 @@ menu = st.sidebar.radio("📑 Menu", ["Proposta", "Configurações"])
 # Página: Proposta
 # ----------------------------
 if menu == "Proposta":
+    # ----------------------------
+    # Sidebar: detalhes da proposta + upload
+    # ----------------------------
     st.sidebar.header("Detalhes da Proposta")
     cliente = st.sidebar.text_input("Nome do Cliente", "Cliente Exemplo")
 
     # Data formatada para dd/mm/yyyy
-    data_proposta = st.sidebar.date_input(
-        "Data da Proposta", 
-        value=date.today(), 
-        format="DD/MM/YYYY"
-    )
+    try:
+        data_proposta = st.sidebar.date_input(
+            "Data da Proposta",
+            value=date.today(),
+            format="DD/MM/YYYY"
+        )
+    except Exception as e:
+        st.sidebar.error(f"Erro ao definir data: {e}")
+        data_proposta = date.today()
 
     # Prazo de pagamento inicial alterado
-    prazo_pagamento = st.sidebar.text_input("Prazo de Pagamento", "À vista")
-    prazo_entrega = st.sidebar.text_input("Prazo de Entrega", "15 dias")
-    validade_proposta = st.sidebar.text_input("Validade da Proposta", "30 dias")
+    try:
+        prazo_pagamento = st.sidebar.text_input("Prazo de Pagamento", "À vista")
+    except Exception as e:
+        st.sidebar.error(f"Erro ao definir prazo de pagamento: {e}")
+        prazo_pagamento = "À vista"
+
+    try:
+        prazo_entrega = st.sidebar.text_input("Prazo de Entrega", "15 dias")
+    except Exception as e:
+        st.sidebar.error(f"Erro ao definir prazo de entrega: {e}")
+        prazo_entrega = "15 dias"
+
+    try:
+        validade_proposta = st.sidebar.text_input("Validade da Proposta", "30 dias")
+    except Exception as e:
+        st.sidebar.error(f"Erro ao definir validade da proposta: {e}")
+        validade_proposta = "30 dias"
 
     st.sidebar.markdown("---")
     st.sidebar.header("Upload de Produtos")
     uploaded_file = st.sidebar.file_uploader(
-        "Enviar planilha (.xlsx) com colunas: Produto, Quant., Preço Unit., Observações", 
+        "Enviar planilha (.xlsx) com colunas: Produto, Quant., Preço Unit., Observações",
         type=["xlsx"]
     )
 
@@ -66,13 +87,16 @@ if menu == "Proposta":
         return output
 
     # Botão de download do modelo Excel
-    with st.sidebar:
-        st.download_button(
-            label="Baixar Modelo Excel",
-            data=gerar_excel_modelo(),
-            file_name="produtos_modelo.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    try:
+        with st.sidebar:
+            st.download_button(
+                label="Baixar Modelo Excel",
+                data=gerar_excel_modelo(),
+                file_name="produtos_modelo.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    except Exception as e:
+        st.sidebar.error(f"Erro ao criar botão de download: {e}")
 
     # ----------------------------
     # Se recém carregou um arquivo, processa apenas uma vez
@@ -117,44 +141,53 @@ if menu == "Proposta":
     st.markdown(f"**A/C {cliente}**")
     st.markdown("### Dados da Empresa")
     st.markdown("""
-    **Nome da Empresa:** GUSTAVO LUIZ FREITAS DE SOUSA  
-    **CNPJ:** 41.640.044/0001-63  
-    **IE:** 33.822.412.281  
-    **IM:** 1.304.930-0  
-    **Endereço:** Rua Henrique Fleiuss, 444 - Tijuca  
-    **Cidade/UF:** Rio de Janeiro / RJ  
-    **CEP:** 20521-260
-    """)
+**Nome da Empresa:** GUSTAVO LUIZ FREITAS DE SOUSA  
+**CNPJ:** 41.640.044/0001-63  
+**IE:** 33.822.412.281  
+**IM:** 1.304.930-0  
+**Endereço:** Rua Henrique Fleiuss, 444 - Tijuca  
+**Cidade/UF:** Rio de Janeiro / RJ  
+**CEP:** 20521-260
+""")
 
     st.markdown("### Dados para Contato")
     st.markdown("""
-    **E-mail:** gustavo_lfs@hotmail.com  
-    **Telefone:** (21) 996913090
-    """)
+**E-mail:** gustavo_lfs@hotmail.com  
+**Telefone:** (21) 996913090
+""")
 
     st.markdown("### Dados Bancários")
     st.markdown("""
-    **Banco:** Inter  
-    **Agência:** 0001  
-    **Conta:** 12174848-0  
-    **PIX:** 41.640.044/0001-63
-    """)
+**Banco:** Inter  
+**Agência:** 0001  
+**Conta:** 12174848-0  
+**PIX:** 41.640.044/0001-63
+""")
 
     # ----------------------------
     # Funções para manipular produtos
     # ----------------------------
     def adicionar_produto():
-        st.session_state.produtos.append({"id": str(uuid.uuid4()), "Produto": "", "Quant.": 1, "Preço Unit.": 0.0, "Observações": ""})
-        st.rerun()
+        try:
+            st.session_state.produtos.append({"id": str(uuid.uuid4()), "Produto": "", "Quant.": 1, "Preço Unit.": 0.0, "Observações": ""})
+            st.rerun()
+        except Exception as e:
+            st.error(f"Erro ao adicionar produto: {e}")
 
     def remover_produto():
-        if len(st.session_state.produtos) > 1:
-            st.session_state.produtos.pop()
-        st.rerun()
+        try:
+            if len(st.session_state.produtos) > 1:
+                st.session_state.produtos.pop()
+            st.rerun()
+        except Exception as e:
+            st.error(f"Erro ao remover produto: {e}")
 
     def limpar_produtos():
-        st.session_state.produtos = [{"id": str(uuid.uuid4()), "Produto": "", "Quant.": 1, "Preço Unit.": 0.0, "Observações": ""}]
-        st.rerun()
+        try:
+            st.session_state.produtos = [{"id": str(uuid.uuid4()), "Produto": "", "Quant.": 1, "Preço Unit.": 0.0, "Observações": ""}]
+            st.rerun()
+        except Exception as e:
+            st.error(f"Erro ao limpar produtos: {e}")
 
     # ----------------------------
     # Edição dinâmica dos produtos (interface principal)
@@ -181,19 +214,22 @@ if menu == "Proposta":
             })
 
     # Atualiza session_state
-    if len(st.session_state.produtos) != len(produtos_editados):
-        nova_lista = []
-        for row in produtos_editados:
-            nova_lista.append({**row, "id": str(uuid.uuid4())})
-        st.session_state.produtos = nova_lista
-    else:
-        for idx, (old, new) in enumerate(zip(st.session_state.produtos, produtos_editados)):
-            st.session_state.produtos[idx].update({
-                "Produto": new["Produto"],
-                "Quant.": new["Quant."],
-                "Preço Unit.": new["Preço Unit."],
-                "Observações": new["Observações"]
-            })
+    try:
+        if len(st.session_state.produtos) != len(produtos_editados):
+            nova_lista = []
+            for row in produtos_editados:
+                nova_lista.append({**row, "id": str(uuid.uuid4())})
+            st.session_state.produtos = nova_lista
+        else:
+            for idx, (old, new) in enumerate(zip(st.session_state.produtos, produtos_editados)):
+                st.session_state.produtos[idx].update({
+                    "Produto": new["Produto"],
+                    "Quant.": new["Quant."],
+                    "Preço Unit.": new["Preço Unit."],
+                    "Observações": new["Observações"]
+                })
+    except Exception as e:
+        st.error(f"Erro ao atualizar sessão de produtos: {e}")
 
     # ----------------------------
     # Botões de adicionar/remover/limpar
@@ -229,11 +265,15 @@ if menu == "Proposta":
     # ----------------------------
     # Data formatada PT-BR
     # ----------------------------
-    meses_pt = {1:"janeiro",2:"fevereiro",3:"março",4:"abril",5:"maio",6:"junho",7:"julho",8:"agosto",9:"setembro",10:"outubro",11:"novembro",12:"dezembro"}
-    dia = data_proposta.day
-    mes = meses_pt[data_proposta.month]
-    ano = data_proposta.year
-    data_formatada = f"{dia} de {mes} de {ano}"
+    try:
+        meses_pt = {1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril", 5: "maio", 6: "junho",
+                    7: "julho", 8: "agosto", 9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"}
+        dia = data_proposta.day
+        mes = meses_pt[data_proposta.month]
+        ano = data_proposta.year
+        data_formatada = f"{dia} de {mes} de {ano}"
+    except Exception:
+        data_formatada = date.today().strftime("%d/%m/%Y")
 
     st.markdown(f"\n\n\n**Rio de Janeiro, {data_formatada}.**")
     st.markdown("**Gustavo Luiz Freitas de Sousa**")
@@ -365,4 +405,32 @@ if menu == "Proposta":
             assinatura.drawWidth = 120
             assinatura.hAlign = 'LEFT'
             elementos.append(assinatura)
-        except
+        except Exception:
+            # se não houver assinatura, segue sem adicionar
+            pass
+        elementos.append(Paragraph("Gustavo Luiz Freitas de Sousa", estilos["NormalLeft"]))
+
+        doc.build(elementos)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    # ----------------------------
+    # Botão de download PDF
+    # ----------------------------
+    try:
+        pdf_bytes = gerar_pdf_bytes(cliente, data_formatada, df_final, total_geral, prazo_pagamento, prazo_entrega, validade_proposta)
+        st.download_button(
+            label="Baixar Proposta em PDF",
+            data=pdf_bytes,
+            file_name=f"proposta_{cliente.replace(' ', '*')}*{datetime.now().strftime('%Y%m%d')}.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.error(f"Erro ao preparar download do PDF: {e}")
+
+# ----------------------------
+# Página: Configurações (vazia)
+# ----------------------------
+elif menu == "Configurações":
+    st.title("⚙️ Configurações")
+    st.info("Área de configuração em desenvolvimento.")
