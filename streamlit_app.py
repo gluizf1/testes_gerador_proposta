@@ -188,8 +188,17 @@ if st.session_state["pagina"] == "proposta":
     st.markdown("**Gustavo Luiz Freitas de Sousa**")
 
     # ---------- Botão de download PDF ----------
-    # (Mesma função de gerar_pdf_bytes do seu código original)
-    # Para não alongar muito, podemos manter a função de gerar PDF exatamente como você tinha
+    # (Mesma função de gerar_pdf_bytes do seu código original)-----------------------------------------------------------------------------------------------------------------------------------------------------
+ try:
+        pdf_bytes = gerar_pdf_bytes(cliente, data_formatada, df_final, total_geral, prazo_pagamento, prazo_entrega, validade_proposta)
+        st.download_button(
+            label="Baixar Proposta em PDF",
+            data=pdf_bytes,
+            file_name=f"proposta_{cliente.replace(' ', '*')}*{datetime.now().strftime('%Y%m%d')}.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.error(f"Erro ao preparar download do PDF: {e}")
 
 # ---------- Página de Configurações ----------
 elif st.session_state["pagina"] == "config":
